@@ -7,3 +7,17 @@ fields:
     span: left
     label: Result bar color
     type: dropdown
+  show_result:
+    span: left
+    label: Show result to public?
+    type: switch
+    default: 0
+  alert_text:
+    span: left
+    label: Alert Text
+    type: text
+  allow_duplicate_ip:
+    span: left
+    label: Allow the same IP to vote multiple answer on one poll?
+    type: switch
+    default: 1

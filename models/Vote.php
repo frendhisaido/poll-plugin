@@ -18,6 +18,17 @@ class Vote extends Model
         return FALSE;
     }
 
+    public static function lastVote($ip, $pollId)
+    {
+        $checkIfVote = self::where('ip', $ip)->where('poll_id', $pollId)->orderBy('created_at','desc')->first();
+        if($checkIfVote)
+        {
+        	return $checkIfVote;
+        }
+
+        return FALSE;
+    }
+
     public static function countVotesById($pollId, $answerId)
     {
         $countQuery = self::where('poll_id', $pollId)->where('answer_id', $answerId)->count();

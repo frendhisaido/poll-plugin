@@ -7,7 +7,8 @@ use Cms\Classes\Page;
 use Cms\Classes\ComponentBase;
 use Validator;
 use Symfony\Component\HttpFoundation\Request;
-use October\Rain\Support\ValidationException;
+//use October\Rain\Support\ValidationException;
+use October\Rain\Exception\ValidationException;
 use ShahiemSeymor\Poll\Models\Polls as Poll;
 use ShahiemSeymor\Poll\Models\Vote as Votes;
 use ShahiemSeymor\Poll\Models\Settings as Settings;
@@ -17,6 +18,8 @@ class Vote extends ComponentBase
     public $lastestPoll;
     public $lastestPollAnswers;
     public $checkIfVote;
+    public $lastVote;
+    public $showResult;
     public $request;
     public $vote;
     public $property;
@@ -54,6 +57,8 @@ class Vote extends ComponentBase
         $this->request = Request::createFromGlobals();
         $this->vote = $this->page['vote'] = new Votes;
         $this->vote = $this->page['barColor'] = Settings::get('poll_settings');
+        $this->vote = $this->page['showResult'] = Settings::get('show_result');
+        $this->vote = $this->page['alertText'] = Settings::get('alert_text');
     }
 
     public function onRender()
@@ -61,6 +66,7 @@ class Vote extends ComponentBase
         $this->lastestPoll = $this->page['lastestPoll'] = Poll::getLatestPoll(($this->property('poll') == 0 ? Poll::getLatestPollId() : $this->property('poll')));
         $this->lastestPollAnswers = $this->page['lastestPollAnswers'] = Poll::getLatestPollAnswers(($this->property('poll') == 0 ? Poll::getLatestPollId() : $this->property('poll')));
         $this->checkIfVote = $this->page['checkIfVote'] = Votes::checkIfVote($this->request->getClientIp(), ($this->property('poll') == 0 ? Poll::getLatestPollId() : $this->property('poll')));
+        $this->lastVote = $this->page['lastVote'] = Votes::lastVote($this->request->getClientIp(), ($this->property('poll') == 0 ? Poll::getLatestPollId() : $this->property('poll')));
     }
 
     public function onPoll()
@@ -74,16 +80,21 @@ class Vote extends ComponentBase
             throw new ValidationException($validation);
         }
         else
-        {
-            $addVote = new Votes;
+        {   
+            $poll_id = (post('id') == 0 ? Poll::getLatestPollId() : post('id'));
+            if( Settings::get('allow_duplicate_ip') ) {
+                $addVote = new Votes;
+            }else{
+                $addVote = Votes::firstOrCreate( ['ip' => $this->request->getClientIp(), 'poll_id' => $poll_id ] );
+            }
             $addVote->ip =  $this->request->getClientIp();
-            $addVote->poll_id = (post('id') == 0 ? Poll::getLatestPollId() : post('id'));
+            $addVote->poll_id = $poll_id;
             $addVote->answer_id = \Input::get('vote_answer');
             $addVote->save();
 
             $this->page['vote'] = new Votes;
-            $this->lastestPoll = $this->page['lastestPoll'] = Poll::getLatestPoll((post('id') == 0 ? Poll::getLatestPollId() : post('id')));
-            $this->lastestPollAnswers = $this->page['lastestPollAnswers'] = Poll::getLatestPollAnswers((post('id') == 0 ? Poll::getLatestPollId() : post('id')));
+            $this->lastestPoll = $this->page['lastestPoll'] = Poll::getLatestPoll($poll_id);
+            $this->lastestPollAnswers = $this->page['lastestPollAnswers'] = Poll::getLatestPollAnswers($poll_id);
             $this->vote = $this->page['barColor'] = Settings::get('poll_settings');
         }
     }
