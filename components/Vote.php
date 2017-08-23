@@ -85,6 +85,7 @@ class Vote extends ComponentBase
             if( Settings::get('allow_duplicate_ip') ) {
                 $addVote = new Votes;
             }else{
+                Vote::unguard();
                 $addVote = Votes::firstOrCreate( ['ip' => $this->request->getClientIp(), 'poll_id' => $poll_id ] );
             }
             $addVote->ip =  $this->request->getClientIp();
