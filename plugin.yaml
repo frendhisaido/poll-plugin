@@ -1,0 +1,6 @@
+plugin:
+    name: 'shahiemseymor.poll::lang.plugin.name'
+    description: 'shahiemseymor.poll::lang.plugin.description'
+    author: shahiemseymor
+    icon: oc-icon-adjust
+    homepage: ''
